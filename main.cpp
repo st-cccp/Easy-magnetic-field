@@ -9,7 +9,7 @@ int main()
     double Rmax = 8;
     double rr = 0.03;
     double h = 6;
-    /*
+    
     BaseComponents base1(Vect_3d(RR - rr, 0, h));
     //使用BaseCompnents类规定开始的位置
     Solenoid a(&base1, Vect_3d(0, 0, h), Vect_3d(0,0,2), RR - rr, 2 * rr, 20, 360, 30);
@@ -49,7 +49,7 @@ int main()
     //MagnetProb顾名思义，就是用来解决磁场问题的一个总引擎。
     prob.setComponent(&aa);
     //设置问题所用元件，在本系统的设计模式中，最后一个元件包含了其自身和其直接间接连接的所有元件的信息和效应
-    CubePlace cube1(Vect_3d(-0.2,-0.2,-0.2),Vect_3d(0.2,0.2,0.2),3);
+    CubePlace cube1(Vect_3d(-0.2,-0.2,-0.2),Vect_3d(0.2,0.2,0.2),4);
     //一种研究点集合，给出立方体中的点，第一个和第二个参数分别是立方体对角的点，给出一个与坐标轴平行的立方体。
     //第三个参数是一条边切成几片，给出立方体内部(n-1)^3个点。
     auto result = prob.getField(cube1);
@@ -68,7 +68,7 @@ int main()
 
     cout << "--------------------------------------------\n";
     prob.setComponent(&bbinv);
-    CubePlace cube2(Vect_3d(-0.2,-0.2,-0.2),Vect_3d(0.2,0.2,0.2),2);
+    CubePlace cube2(Vect_3d(-0.2,-0.2,-0.2),Vect_3d(0.2,0.2,0.2),4);
     result = prob.getField(cube2);
     for(auto i : result)
     {
@@ -79,7 +79,7 @@ int main()
     {
         cout << i.first << " : \n" << i.second << endl;
     }
-    */
+    /*
     BaseComponents base(Vect_3d(1,0,0));
     Solenoid a(&base, Vect_3d(0, 0, 0), Vect_3d(0,0,1), 1, 0, 1, 360, 1);
     Mosquito b(&base, Vect_3d(0, 0, 0), Vect_3d(0,0,1), 1, 0, 1, 360, 1);
@@ -88,7 +88,7 @@ int main()
     cout << a.MagGrad(Vect_3d(0.5,0.5,2)) << endl;
     cout << b.MagGrad(Vect_3d(0.5,0.5,2)) << endl;
     //这些是比较基本的测试代码，现在没啥用了
-    
+    */
     return 0;
 }
 
