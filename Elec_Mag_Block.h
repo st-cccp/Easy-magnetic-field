@@ -7,6 +7,7 @@ using std::vector;
 class Components{
     public:
     virtual Gause Magfield(Vect_3d r) = 0;
+    virtual Tensor MagGrad(Vect_3d r) = 0;
     virtual Vect_3d Endpoint() = 0;
     virtual ~Components() = 0;
     virtual void ChangeCurrent(Ampere curr) = 0;
@@ -19,6 +20,7 @@ class BaseComponents:public Components{
     public:
     BaseComponents(Vect_3d p):pos(p){}
     virtual Gause Magfield(Vect_3d r) override{ return Gause();}
+    virtual Tensor MagGrad(Vect_3d r) override{ return Tensor();}
     virtual Vect_3d Endpoint() override { return pos; }
     virtual void ChangeCurrent(Ampere curr) override {}
 };
@@ -38,8 +40,20 @@ class AddComponents: public Components{
         }
         return answer;
     }
+    virtual Tensor AddMagGrad(Vect_3d r)
+    {
+        Tensor answer;
+        for(auto i : segments)
+        {
+            answer = answer + i.MagGrad(r);
+        }
+        return answer;
+    }
     virtual Gause Magfield(Vect_3d r) override{
         return components->Magfield(r) + AddMagfield(r);
+    }
+    virtual Tensor MagGrad(Vect_3d r) override{
+        return components->MagGrad(r) + AddMagGrad(r);
     }
     Ampere current;
     void ChangeCurrent(Ampere curr){

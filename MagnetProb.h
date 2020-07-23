@@ -46,6 +46,7 @@ bool operator< (const Vect_3d& a, const Vect_3d& b)
 class MagnetProb{
     Components* components;
     map<Vect_3d, Gause> field;
+    map<Vect_3d, Tensor> grad;
     public:
     void setComponent(Components* component){components = component;}
     const map<Vect_3d, Gause>& getField(__CalculatePlace& calc){
@@ -55,6 +56,14 @@ class MagnetProb{
             field[i] = components->Magfield(i);
         }
         return field;
+    }
+    const map<Vect_3d, Tensor>& getGrad(__CalculatePlace& calc){
+        grad.clear();
+        for(auto i : calc)
+        {
+            grad[i] = components->MagGrad(i);
+        }
+        return grad;
     }
 };
 
