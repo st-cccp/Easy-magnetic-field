@@ -34,14 +34,27 @@ class CubePlace : public __CalculatePlace {
     }
 };
 
-bool operator< (const Vect_3d& a, const Vect_3d& b)
-{
-    if(norm_2(a) < norm_2(b))return true;
-    if(norm_2(a) > norm_2(b))return false;
-    if(a.elem(0) < b.elem(0))return true;
-    if(a.elem(1) < b.elem(1))return true;
-    return false;
-}
+class LinePlace : public __CalculatePlace {
+    public:
+    LinePlace(Vect_3d corner1, Vect_3d corner2, int PiecesOnLine = 100)
+    {
+        Vect_3d Delta = corner2 - corner1;
+        for(int i = 1; i < PiecesOnLine; i++)
+        {
+            places.push_back(corner1 + Delta * i * (1.0 / PiecesOnLine));
+        }
+    }
+};
+
+class PointPlace : public __CalculatePlace {
+    public:
+    PointPlace(Vect_3d theplace)
+    {
+        places.push_back(theplace);
+    }
+};
+
+bool operator< (const Vect_3d& a, const Vect_3d& b);
 
 class MagnetProb{
     Components* components;

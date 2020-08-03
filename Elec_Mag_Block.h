@@ -13,8 +13,6 @@ class Components{
     virtual void ChangeCurrent(Ampere curr) = 0;
 };
 
-Components::~Components(){}
-
 class BaseComponents:public Components{
     Vect_3d pos;
     public:
