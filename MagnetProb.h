@@ -4,6 +4,8 @@
 
 #include <map>
 using std::map;
+#include <functional>
+using std::function;
 
 class __CalculatePlace {
     protected:
@@ -11,6 +13,7 @@ class __CalculatePlace {
     public:
     vector<Vect_3d>::iterator begin(){return places.begin();}
     vector<Vect_3d>::iterator end(){return places.end();}
+    auto size(){return places.size();}
 };
 
 class CubePlace : public __CalculatePlace {
@@ -29,6 +32,22 @@ class CubePlace : public __CalculatePlace {
                 {
                     places.push_back(Vect_3d(corner1[0] + i * dx, corner1[1] + j * dy, corner1[2] + k * dz));
                 }
+            }
+        }
+    }
+};
+
+class PlanePlace : public __CalculatePlace{
+    public:
+    PlanePlace(Vect_3d center, Vect_3d reladir1, Vect_3d reladir2, int PiecesPerLine = 100)
+    {
+        Vect_3d Delta1 = reladir1 - center;
+        Vect_3d Delta2 = reladir2 - center;
+        for(int i = 1; i < PiecesPerLine; i++)
+        {
+            for(int j = 1; j < PiecesPerLine; j++)
+            {
+                places.push_back(center - Delta1 - Delta2 + Delta1 * i * (2.0 / PiecesPerLine) + Delta2 * j * (2.0 / PiecesPerLine));
             }
         }
     }
@@ -78,5 +97,48 @@ class MagnetProb{
         }
         return grad;
     }
+    Vect_3d find(function<double(Gause)> f)
+    {
+        if(field.empty())
+        return Vect_3d();
+        else
+        {
+            bool begining = true;
+            double min = 0.0;
+            Vect_3d minplace;
+            for(auto i : field)
+            {
+                if(begining)
+                {
+                    begining = false;
+                    min = f(i.second);
+                    minplace = i.first;
+                }
+                else
+                {
+                    if(f(i.second) < min)
+                    {
+                        min = f(i.second);
+                        minplace = i.first;
+                    }
+                }
+            }
+            return minplace;
+        }
+        
+    }
 };
 
+namespace FINDINGFUNC{
+
+double fieldmin(Gause B);
+
+double fieldmax(Gause B);
+
+double Bzmin(Gause B);
+
+double Bzmax(Gause B);
+
+double Bangel2z(Gause B);
+
+}

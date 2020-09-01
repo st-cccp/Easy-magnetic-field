@@ -2,4 +2,4 @@
 
 #include "MagnetProb.h"
 
-pair<AddComponents*, AddComponents*> Experiment();
+AddComponents* Experiment(int type = 0, double index = 0);
