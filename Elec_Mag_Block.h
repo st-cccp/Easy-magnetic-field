@@ -64,6 +64,33 @@ class AddComponents: public Components{
     }
 };
 
+class SocketComponents : public AddComponents{
+    Vect_3d pos;
+    vector<AddComponents*> inputs;
+    public:
+    SocketComponents(Vect_3d p, Components* component):AddComponents(component), pos(p){}
+    void insert(AddComponents* ins){
+        inputs.push_back(ins);
+    }
+    void clear(){inputs.clear();}
+    virtual Gause Magfield(Vect_3d r) override{
+        Gause answer;
+        for (auto input : inputs)
+        {
+            answer = answer + input->Magfield(r);
+        }
+        return answer;
+    }
+    virtual Tensor MagGrad(Vect_3d r) override{
+        Tensor answer;
+        for (auto input : inputs)
+        {
+            answer = answer + input->MagGrad(r);
+        }
+        return answer;
+    }
+    virtual Vect_3d Endpoint() override { return pos; }
+};
 
 //下面为具体的励磁元件
 typedef enum {CW,CCW} CLOCKWISE;//顺时针/逆时针
@@ -177,3 +204,5 @@ class Pass: public AddComponents{
         return Endr;
     }
 };
+
+
