@@ -54,7 +54,7 @@ class AddComponents: public Components{
         return components->MagGrad(r) + AddMagGrad(r);
     }
     Ampere current;
-    void ChangeCurrent(Ampere curr){
+    virtual void ChangeCurrent(Ampere curr){
         current = curr;
         for(auto& i : segments)
         {
@@ -68,6 +68,7 @@ class SocketComponents : public AddComponents{
     Vect_3d pos;
     vector<AddComponents*> inputs;
     public:
+    SocketComponents(Vect_3d p):AddComponents(nullptr), pos(p){clear();}
     SocketComponents(Vect_3d p, Components* component):AddComponents(component), pos(p){}
     void insert(AddComponents* ins){
         inputs.push_back(ins);
@@ -90,6 +91,14 @@ class SocketComponents : public AddComponents{
         return answer;
     }
     virtual Vect_3d Endpoint() override { return pos; }
+    virtual void ChangeCurrent(Ampere curr) override {
+        current = curr;
+        for(auto& i : inputs)
+        {
+            i->ChangeCurrent(curr);
+        }
+        components->ChangeCurrent(curr);
+    }
 };
 
 //下面为具体的励磁元件
