@@ -93,11 +93,10 @@ class SocketComponents : public AddComponents{
     virtual Vect_3d Endpoint() override { return pos; }
     virtual void ChangeCurrent(Ampere curr) override {
         current = curr;
-        for(auto& i : inputs)
+        for(auto input : inputs)
         {
-            i->ChangeCurrent(curr);
+            input->ChangeCurrent(curr);
         }
-        components->ChangeCurrent(curr);
     }
 };
 
