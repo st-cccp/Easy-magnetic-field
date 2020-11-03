@@ -117,7 +117,9 @@ class Solenoid: public AddComponents{
     piecesperturn(pieces),clock(clw){
         current = curr;
         Vect_3d Beginr = components->Endpoint() - bottom_center;
-        Vect_3ddir Begindir(Beginr);
+        Vect_3ddir Begindir(axle * Beginr * axle);
+        segments.push_back(CurrentSegment(curr, Begindir * radius - Beginr, Beginr + bottom_center));
+        Beginr = Begindir * radius;
         Vect_3ddir torotate(axle * Beginr);
         if(clock != CW)
         torotate = -torotate;
@@ -132,10 +134,11 @@ class Solenoid: public AddComponents{
     virtual Vect_3d Endpoint() override
     {
         Vect_3d Beginr = components->Endpoint() - bottom_center;
-        Vect_3ddir torotate(axle * Beginr);
+        Vect_3ddir Begindir(axle * Beginr * axle);
+        Vect_3ddir torotate(axle * Begindir);
         if(clock != CW)
         torotate = -torotate;
-        return bottom_center + (Beginr * cos(turns * 2 * PI) + torotate * radius * sin(turns * 2 * PI)) + axle * (Step * turns);
+        return bottom_center + (Begindir * radius * cos(turns * 2 * PI) + torotate * radius * sin(turns * 2 * PI)) + axle * (Step * turns);
     }
 };
 
@@ -154,15 +157,17 @@ class Mosquito: public AddComponents{
     piecesperturn(pieces),clock(clw){
         current = curr;
         Vect_3d Beginr = components->Endpoint() - bottom_center;
-        Vect_3ddir Begindir(Beginr);
-        Vect_3ddir torotate(axle * Beginr);
+        Vect_3ddir Begindir(axle * Beginr * axle);
+        segments.push_back(CurrentSegment(curr, Begindir * radius - Beginr, Beginr + bottom_center));
+        Beginr = Begindir * radius;
+        Vect_3ddir torotate(axle * Begindir);
         if(clock != CW)
         torotate = -torotate;
         Vect_3d lastr = Beginr;
         for(int i = 0; i < floor(piecesperturn * turns); i++)
         {
             Vect_3ddir thisdir(Begindir * cos((i + 1) * 2 * PI / piecesperturn) + torotate * sin((i + 1) * 2 * PI / piecesperturn));
-            Vect_3d thisr = thisdir * (radius - Step * i / piecesperturn);
+            Vect_3d thisr = thisdir * (radius - Step * (i + 1) / piecesperturn);
             segments.push_back(CurrentSegment(curr, thisr - lastr, lastr + bottom_center));
             lastr = thisr;
         }
@@ -170,10 +175,11 @@ class Mosquito: public AddComponents{
     virtual Vect_3d Endpoint() override 
     {
         Vect_3d Beginr = components->Endpoint() - bottom_center;
-        Vect_3ddir torotate(axle * Beginr);
+        Vect_3ddir Begindir(axle * Beginr * axle);
+        Vect_3ddir torotate(axle * Begindir);
         if(clock != CW)
         torotate = -torotate;
-        return bottom_center + (Vect_3ddir(Beginr) * cos(turns * 2 * PI) + torotate * sin(turns * 2 * PI)) * (radius - Step * turns);
+        return bottom_center + (Begindir * cos(turns * 2 * PI) + torotate * sin(turns * 2 * PI)) * (radius - Step * turns);
     }
 };
 
@@ -183,8 +189,8 @@ class StraightWire: public AddComponents{
     Vect_3d Endr;
     int pieces;
     public:
-    StraightWire(Components* component, Vect_3d begin, Vect_3d end, Ampere curr = 1, int piece = 100):
-    AddComponents(component),Beginr(begin),Endr(end),pieces(piece)
+    StraightWire(Components* component, Vect_3d end, Ampere curr = 1, int piece = 100):
+    AddComponents(component),Beginr(component->Endpoint()),Endr(end),pieces(piece)
     {
         current = curr;
         for(int i = 0; i < pieces; i++)
@@ -214,3 +220,26 @@ class Pass: public AddComponents{
 };
 
 
+//以下为双向元件
+class StraightCable {
+    Components* componentsforward;
+    Components* componentsbackward;
+    Vect_3d vec_begin, vec_end;
+    Vect_3d lean;
+    StraightWire* wire_forward;
+    StraightWire* wire_backward;
+    public:
+    StraightCable(Components* component, Vect_3d end):componentsforward(component), vec_begin(component->Endpoint()), vec_end(end), componentsbackward(nullptr){
+        wire_forward = new StraightWire(componentsforward, vec_end);
+    }
+    void SetBackward(Components* component)
+    {
+        if(componentsbackward == nullptr)
+        {
+            componentsbackward = component;
+        }
+        else
+        {
+        }
+    }
+};
