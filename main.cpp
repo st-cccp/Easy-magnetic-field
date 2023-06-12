@@ -19,14 +19,14 @@ int main()
 #endif
     vector<AddComponents*> vsolenoid;
     vector<double> RRchoices;
-    // RRchoices.push_back(0.1464);
-    for(double i = 0.12; i < 0.16; i+= 0.0004)
-    {
-        RRchoices.push_back(i);
-    }
+    RRchoices.push_back(0.060);
+    // for(double i = 0.12; i < 0.16; i+= 0.0025)
+    // {
+    //     RRchoices.push_back(i);
+    // }
     vector<AddComponents*> vmosquito;
     vector<double> Rmchoices;
-    Rmchoices.push_back(0.1432);
+    // Rmchoices.push_back(0.1432);
     // for(double i = 0.12; i < 0.16; i+= 0.0004)
     // {
     //     Rmchoices.push_back(i);
@@ -37,7 +37,7 @@ int main()
     }
     for(auto i : Rmchoices)
     {
-        vmosquito.push_back(Experiment(1,i));
+        // vmosquito.push_back(Experiment(1,i));
     }
 #ifdef __TESTING_
     // cout << solenoid->Magfield(Vect_3d()) << endl;
@@ -71,11 +71,12 @@ int main()
     // PointPlace point1(Vect_3d(1e-4, 1e-4, 0));
     // PointPlace point2(Vect_3d(1e-4, 1.01e-4, 0));
     vector<std::map<Vect_3d, Gause>> result;
-    for(auto place : __placeselfchoices)
-    {
-        result.push_back(prob.getField(*place));
-        //cout << "center : " << prob.find(FINDINGFUNC::fieldmax) << endl;
-    }
+    result.push_back(prob.getField(xyplane_50));
+    // for(auto place : __placeplanechoices)
+    // {
+    //     result.push_back(prob.getField(*place));
+    //     //cout << "center : " << prob.find(FINDINGFUNC::fieldmax) << endl;
+    // }
     //给出绑定的电路系统在需要的位置的磁场，得到的是一个std::map类型，map元素的第一和第二个元素分别代表位置和磁场。
     vector<double> fieldintense1;
     vector<double> fieldangle1;
@@ -91,7 +92,7 @@ int main()
         for(auto i : re)
         {
             #ifdef __TESTING_
-            cout << i.first << " : " << i.second << endl;
+            cout << i.first << " : " << setprecision(15) << i.second.elem(2) << endl;
             #endif
             fieldintense1.push_back(i.second.elem(2));//磁场强度都存起来了
             // fieldangle1.push_back(angle(i.second, Vect_3d(0, 0, 1)));
@@ -120,7 +121,7 @@ int main()
         //     cout << setprecision(15) << i << ", ";
         // }
         // cout << endl;
-        // cout << "max: " << fieldBzmax << "min: " << fieldBzmin << "mean: " << fieldmean << "for " << pointnum << " points" << endl;
+        cout << "max: " << fieldBzmax << "min: " << fieldBzmin << "mean: " << fieldmean << "for " << pointnum << " points" << endl;
         cout << (fieldBzmax - fieldBzmin) / fieldmean << ", ";
         if(fielddiversemin1[countchoice] > (fieldBzmax - fieldBzmin) / fieldmean)
         {
@@ -135,9 +136,9 @@ int main()
     {
         // cout << fielddiversemin1[i] << " at " << fielddivplacemin1[i] << endl;
     }
-    cout << "\n--------------------------------------------\n";
+    // cout << "\n--------------------------------------------\n";
 #ifdef __TESTING_
-    cout << "--------------------------------------------\n";
+    // cout << "--------------------------------------------\n";
 #endif
     
     vector<double> fielddiversemin2;
@@ -149,11 +150,12 @@ int main()
     prob.setComponent(mosquito);
     vector<std::map<Vect_3d, Gause>> result;
     result.clear();
-    for(auto place : __placeselfchoices)
-    {
-        result.push_back(prob.getField(*place));
-        // cout << "center : " << prob.find(FINDINGFUNC::fieldmax) << endl;
-    }
+    result.push_back(prob.getField(xyplane_100));
+    // for(auto place : __placeselfchoices)
+    // {
+    //     result.push_back(prob.getField(*place));
+    //     // cout << "center : " << prob.find(FINDINGFUNC::fieldmax) << endl;
+    // }
     vector<double> fieldintense2;
     vector<double> fieldangle2;
     int countchoice = 0;
@@ -168,7 +170,7 @@ int main()
         for(auto i : re)
         {
             #ifdef __TESTING_
-            cout << i.first << " : " << i.second << endl;
+            // cout << i.first << " : " << setprecision(15) << i.second.elem(2) << endl;
             #endif
             fieldintense2.push_back(i.second.elem(2));//磁场强度都存起来了
             // fieldangle1.push_back(angle(i.second, Vect_3d(0, 0, 1)));
@@ -198,7 +200,7 @@ int main()
         // }
         // cout << endl;
         // cout << "max: " << fieldBzmax << "min: " << fieldBzmin << "mean: " << fieldmean << "for " << pointnum << " points" << endl;
-        cout << (fieldBzmax - fieldBzmin) / fieldmean << ", ";
+        // cout << (fieldBzmax - fieldBzmin) / fieldmean << ", ";
         if(fielddiversemin2[countchoice] > (fieldBzmax - fieldBzmin) / fieldmean)
         {
             fielddiversemin2[countchoice] = (fieldBzmax - fieldBzmin) / fieldmean;

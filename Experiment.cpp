@@ -7,14 +7,16 @@ using namespace std;
 
 static const double __solenoidxmove = 0;
 static const double __solenoidymove = 0;
+static const double __solenoidzmove = 0;
 // static const double __solenoidxmove = 0.00e-5;
 // static const double __solenoidymove = -3.38e-5;
 static const double __mosquitoxmove = 0.5e-3;
 static const double __mosquitoymove = 0;
 // static const double __mosquitoxmoves = -3.5834e-3;
 // static const double __mosquitoymove = 0;
-static const double __errorxmove = 0;
-static const double __errorymove = 0;
+static const double __errorxmove = -0;
+static const double __errorymove = -0;
+static const double __errorzmove = -0;
 static const double __errortheta = 0;
 // static const double __errorxmove = 1e-3;
 // static const double __errorymove = 1e-3;
@@ -22,8 +24,8 @@ static const double __errortheta = 0;
 
 AddComponents* Experiment(int type, double index)
 {
-    double RR = 0.045;
-    double Rmin = 0.045;
+    double RR = 0.060;
+    double Rmin = 0.060;
     switch (type)
     {
         case 0:
@@ -41,30 +43,30 @@ AddComponents* Experiment(int type, double index)
     // double rr = 0;
     double h = 0.066;
     
-    BaseComponents* base1 = new BaseComponents(Vect_3d(RR + __solenoidxmove, __solenoidymove, h + 2 * 8 * rr));//加
+    BaseComponents* base1 = new BaseComponents(Vect_3d(RR + __solenoidxmove, __solenoidymove, __solenoidzmove + h + 2 * 15 * rr));//加
     //使用BaseCompnents类规定开始的位置
     Components* sole[9];
     sole[0] = base1;
-    for(int i = 0; i < 4;i++)
+    for(int i = 0; i < 1;i++)
     {
-        sole[2 * i + 1] = new Solenoid(sole[2 * i], Vect_3d(__solenoidxmove, __solenoidymove, h + 2 * 8 * rr), Vect_3d(0,0,-1), RR + (4 * i) * rr, 2 * rr, 8, __PIECESPERTURN, __INITCURRENT, CLOCKWISE::CCW);
-        sole[2 * i + 2] = new Solenoid(sole[2 * i + 1], Vect_3d(__solenoidxmove, __solenoidymove, h), Vect_3d(0,0,1), RR + (4 * i + 2) * rr, 2 * rr, 8, __PIECESPERTURN, __INITCURRENT);
+        sole[2 * i + 1] = new Solenoid(sole[2 * i], Vect_3d(__solenoidxmove, __solenoidymove, __solenoidzmove + h + 2 * 15 * rr), Vect_3d(0,0,-1), RR + (4 * i) * rr, 2 * rr, 15, __PIECESPERTURN, __INITCURRENT, CLOCKWISE::CCW);
+        sole[2 * i + 2] = new Solenoid(sole[2 * i + 1], Vect_3d(__solenoidxmove, __solenoidymove, __solenoidzmove + h), Vect_3d(0,0,1), RR + (4 * i + 2) * rr, 2 * rr, 15, __PIECESPERTURN, __INITCURRENT);
         //需要加上pass的量，螺线管的
     }
-    Solenoid* sole7 = new Solenoid(sole[2 * 3], Vect_3d(__solenoidxmove, __solenoidymove, h + 2 * 8 * rr), Vect_3d(0,0,-1), RR + (4 * 3) * rr, 2 * rr, 8, __PIECESPERTURN, __INITCURRENT, CLOCKWISE::CCW);
+    Solenoid* sole3 = new Solenoid(sole[2 * 1], Vect_3d(__solenoidxmove, __solenoidymove, __solenoidzmove + h + 2 * 15 * rr), Vect_3d(0,0,-1), RR + (4 * 1) * rr, 2 * rr, 15, __PIECESPERTURN, __INITCURRENT, CLOCKWISE::CCW);
     Components* upper1;
-    upper1 = sole[8];//7*6情况，注意修改
-    Pass* passso1 = new Pass(upper1, Vect_3d(-RR + __errorxmove + __solenoidxmove, __solenoidymove + __errorymove, -h - 2 * 8 * rr));
+    upper1 = sole3;//7*6情况，注意修改
+    Pass* passso1 = new Pass(upper1, Vect_3d(-RR + __errorxmove + __solenoidxmove, __solenoidymove + __errorymove, __solenoidzmove + __errorzmove -h - 2 * 15 * rr));
     Components* soledown[9];
     soledown[0] = passso1;
-    for(int i = 0; i < 4;i++)
+    for(int i = 0; i < 1;i++)
     {
-        soledown[2 * i + 1] = new Solenoid(soledown[2 * i], Vect_3d(__errorxmove + __solenoidxmove, __solenoidymove + __errorymove, -h - 2 * 8 * rr), Vect_3d(0,0,1), RR + (4 * i) * rr, 2 * rr, 8, __PIECESPERTURN, __INITCURRENT);
-        soledown[2 * i + 2] = new Solenoid(soledown[2 * i + 1], Vect_3d(__errorxmove + __solenoidxmove, __solenoidymove + __errorymove, -h), Vect_3d(0,0,-1), RR + (4 * i + 2) * rr, 2 * rr, 8, __PIECESPERTURN, __INITCURRENT, CLOCKWISE::CCW);
+        soledown[2 * i + 1] = new Solenoid(soledown[2 * i], Vect_3d(__errorxmove + __solenoidxmove, __solenoidymove + __errorymove, __solenoidzmove + __errorzmove -h - 2 * 15 * rr), Vect_3d(0,0,1), RR + (4 * i) * rr, 2 * rr, 15, __PIECESPERTURN, __INITCURRENT);
+        soledown[2 * i + 2] = new Solenoid(soledown[2 * i + 1], Vect_3d(__errorxmove + __solenoidxmove, __solenoidymove + __errorymove, __solenoidzmove + __errorzmove -h), Vect_3d(0,0,-1), RR + (4 * i + 2) * rr, 2 * rr, 15, __PIECESPERTURN, __INITCURRENT, CLOCKWISE::CCW);
     }
-    Solenoid* soledown7 = new Solenoid(soledown[2 * 3], Vect_3d(__errorxmove + __solenoidxmove, __solenoidymove + __errorymove, -h - 2 * 8 * rr), Vect_3d(0,0,1), RR + (4 * 3) * rr, 2 * rr, 8, __PIECESPERTURN, __INITCURRENT);
+    Solenoid* soledown3 = new Solenoid(soledown[2 * 1], Vect_3d(__errorxmove + __solenoidxmove, __solenoidymove + __errorymove, __solenoidzmove + __errorzmove -h - 2 * 15 * rr), Vect_3d(0,0,1), RR + (4 * 1) * rr, 2 * rr, 15, __PIECESPERTURN, __INITCURRENT);
     Components* downer1;
-    downer1 = soledown[8];//7*6情况，注意修改
+    downer1 = soledown3;//7*6情况，注意修改
     AddComponents* solenoid = dynamic_cast<AddComponents*>(downer1);
     
     BaseComponents* basetemp = new BaseComponents(Vect_3d(RR, 0, h));//加

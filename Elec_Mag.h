@@ -5,6 +5,7 @@
 #include "Tensor.h"
 
 #define __SI__
+// 在SI下所有磁场仍以高斯为单位
 
 template <typename T>
 class Segment{
@@ -21,6 +22,7 @@ class Segment{
 };
 
 typedef double Ampere;
+typedef double Volt;
 
 typedef Vect_3d Gause;
 
@@ -73,6 +75,10 @@ class CurrentSegment : public Segment<Ampere> {
         }
         #endif
         return grad;
+    }
+    Volt Voltdiff(double lambda/*单位长度的电阻值*/)
+    {
+        return value * lambda * norm_2(Length());
     }
 };
 

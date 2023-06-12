@@ -4,4 +4,4 @@ all:
 %.exe:
 	g++ -g -std=c++14 $*.cpp Elec_Mag.cpp Elec_Mag_Block.cpp Tensor.cpp Vect.cpp Vect_3d.cpp Vect_3ddir.cpp MagnetProb.cpp -o $*
 	./$*.exe
-	rm -rf $*.exe
+	del $*.exe

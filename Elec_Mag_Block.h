@@ -62,6 +62,24 @@ class AddComponents: public Components{
         }
         components->ChangeCurrent(curr);
     }
+    virtual Volt Voltage(double lambda)
+    {
+        Volt v = 0;
+        for(auto i : segments)
+        {
+            v = v + i.Voltdiff(lambda);
+        }
+        return v;
+    }
+    virtual double Len()
+    {
+        double l = 0;
+        for(auto i : segments)
+        {
+            l = l + norm_2(i.Length());
+        }
+        return l;
+    }
 };
 
 class SocketComponents : public AddComponents{
@@ -72,6 +90,11 @@ class SocketComponents : public AddComponents{
     SocketComponents(Vect_3d p, Components* component):AddComponents(component), pos(p){}
     void insert(AddComponents* ins){
         inputs.push_back(ins);
+    }
+    AddComponents* back(){
+        if(!inputs.empty())
+            return inputs.back();
+        else return nullptr;
     }
     void clear(){inputs.clear();}
     virtual Gause Magfield(Vect_3d r) override{
@@ -98,10 +121,29 @@ class SocketComponents : public AddComponents{
             input->ChangeCurrent(curr);
         }
     }
+    virtual Volt Voltage(double lambda) override
+    {
+        Volt v = 0;
+        for(auto input : inputs)
+        {
+            v = v + input->Voltage(lambda);
+        }
+        return v;
+    }
+    virtual double Len() override
+    {
+        double l = 0;
+        for(auto input : inputs)
+        {
+            l = l + input->Len();
+        }
+        return l;
+    }
 };
 
 //下面为具体的励磁元件
 typedef enum {CW,CCW} CLOCKWISE;//顺时针/逆时针
+
 class Solenoid: public AddComponents{
     protected:
     CLOCKWISE clock;//沿着轴向向前的方向看
@@ -111,8 +153,60 @@ class Solenoid: public AddComponents{
     double Step;
     double turns;
     int piecesperturn;
+    int layers;
+    double thick;
+    bool inward;
+    Vect_3d endpoint;
     public:
-    Solenoid(Components* component, Vect_3d cent, Vect_3d ax, double r, double step, double turn, int pieces = 360, Ampere curr = 1, CLOCKWISE clw = CW):
+    Solenoid(Components* component, Vect_3d cent, Vect_3d ax, double r, double step, double turn, int pieces = 360, Ampere curr = 1, CLOCKWISE clw = CW, int layer_num = 1, bool inward_bool = false, double thickness = 0):
+    AddComponents(component),bottom_center(cent),axle(ax),radius(r),Step(step),turns(turn),
+    piecesperturn(pieces),clock(clw),layers(layer_num),inward(inward_bool),thick(thickness){
+        current = curr;
+        Vect_3d end = components->Endpoint();
+        for(int layer = 0; layer < layers; layer++)
+        {
+            double rad = radius + layer * pow(-1, inward) * thick;
+            Vect_3d cent = bottom_center + (axle * step * turns) * (layer % 2);
+            Vect_3ddir ax = axle * pow(-1, layer % 2);
+            CLOCKWISE cloc = clock;
+            if(layer % 2) cloc = CLOCKWISE(!cloc);
+            Vect_3d Beginr = end - cent;
+            Vect_3ddir Begindir(ax * Beginr * ax);
+            segments.push_back(CurrentSegment(curr, Begindir * rad - Beginr, Beginr + cent));
+            Beginr = Begindir * rad;
+            Vect_3ddir torotate(ax * Beginr);
+            if(cloc != CW)
+                torotate = -torotate;
+            Vect_3ddir lastdir = Begindir;
+            for(int i = 0; i < floor(piecesperturn * turns); i++)
+            {
+                Vect_3ddir thisdir(Begindir * cos((i + 1) * 2 * PI / piecesperturn) + torotate * sin((i + 1) * 2 * PI / piecesperturn));
+                segments.push_back(CurrentSegment(curr, Vect_3d((thisdir - lastdir) * rad + ax * (Step / piecesperturn)), cent + lastdir * rad + ax * (Step * i / piecesperturn)));
+                lastdir = thisdir;
+            }
+            end = cent + lastdir * rad + ax * (Step * turns);//lastdir不是这个意思，包括endpoint需要改
+        }
+        endpoint = end;
+    }
+    virtual Vect_3d Endpoint() override
+    {
+        return endpoint;
+    }
+};
+
+
+class __Solenoid: public AddComponents{
+    protected:
+    CLOCKWISE clock;//沿着轴向向前的方向看
+    Vect_3d bottom_center;
+    Vect_3ddir axle;
+    double radius;
+    double Step;
+    double turns;
+    int piecesperturn;
+    Vect_3d endpoint;
+    public:
+    __Solenoid(Components* component, Vect_3d cent, Vect_3d ax, double r, double step, double turn, int pieces = 360, Ampere curr = 1, CLOCKWISE clw = CW):
     AddComponents(component),bottom_center(cent),axle(ax),radius(r),Step(step),turns(turn),
     piecesperturn(pieces),clock(clw){
         current = curr;
@@ -130,15 +224,19 @@ class Solenoid: public AddComponents{
             segments.push_back(CurrentSegment(curr, Vect_3d((thisdir - lastdir) * radius + axle * (Step / piecesperturn)), bottom_center + lastdir * radius + axle * (Step * i / piecesperturn)));
             lastdir = thisdir;
         }
+        endpoint = bottom_center + lastdir * radius + axle * (Step * turns);
     }
     virtual Vect_3d Endpoint() override
     {
+        return endpoint;
+        /*
         Vect_3d Beginr = components->Endpoint() - bottom_center;
         Vect_3ddir Begindir(axle * Beginr * axle);
         Vect_3ddir torotate(axle * Begindir);
         if(clock != CW)
         torotate = -torotate;
         return bottom_center + (Begindir * radius * cos(turns * 2 * PI) + torotate * radius * sin(turns * 2 * PI)) + axle * (Step * turns);
+        */
     }
 };
 
@@ -172,7 +270,7 @@ class Mosquito: public AddComponents{
             lastr = thisr;
         }
     }
-    virtual Vect_3d Endpoint() override 
+    virtual Vect_3d Endpoint() override
     {
         Vect_3d Beginr = components->Endpoint() - bottom_center;
         Vect_3ddir Begindir(axle * Beginr * axle);
@@ -195,12 +293,66 @@ class StraightWire: public AddComponents{
         current = curr;
         for(int i = 0; i < pieces; i++)
         {
-            segments.push_back(CurrentSegment(current, Beginr + (Endr - Beginr) * (1 / pieces), Beginr + (Endr - Beginr) * (i / pieces)));
+            segments.push_back(CurrentSegment(current, (Endr - Beginr) * (1.0 / pieces), Beginr + (Endr - Beginr) * (i * 1.0 / pieces)));
         }
+        cout << this->AddMagfield(Vect_3d()) << endl;
     }
-    virtual Vect_3d Endpoint() override 
+    virtual Vect_3d Endpoint() override
     {
         return Endr;
+    }
+};
+
+class Solenoid_Square: public SocketComponents{
+    protected:
+    CLOCKWISE clock;//沿着轴向向前的方向看
+    Vect_3d begin_corner;
+    Vect_3ddir axle;
+    Vect_3d xside;
+    Vect_3d yside;
+    double Step;
+    double turns;
+    int layers;
+    int piecesperside;
+    double thick;
+    bool inward;
+    Vect_3d endpoint;
+    public:
+    Solenoid_Square(Components* component, Vect_3d xs, Vect_3d ys, Vect_3d ax, double step, double turn, int pieces = 360, Ampere curr = 1, int layer_num = 1, bool inward_bool = false, double thickness = 0):
+    SocketComponents(Vect_3d()),begin_corner(component->Endpoint()),xside(xs),yside(ys),axle(ax),Step(step),turns(turn),piecesperside(pieces),
+    layers(layer_num),inward(inward_bool),thick(thickness){
+        current = curr;
+        Vect_3d end = begin_corner;
+        int hdirsign = 1;
+        for(int layer = 0; layer < layers; layer++)
+        {
+            for(int i = 0; i < turns; i++)
+            {
+                if(back()!=nullptr)
+                    {insert(new StraightWire(back(), end + xside + axle * (step * 1/4 * hdirsign), current, piecesperside));end = end + xside + axle * (step * 1/4 * hdirsign);}
+                else {insert(new StraightWire(component, end + xside + axle * (step * 1/4 * hdirsign), current, piecesperside));end = end + xside + axle * (step * 1/4 * hdirsign);}
+                insert(new StraightWire(back(), end + yside + axle * (step * 1/4 * hdirsign), current, piecesperside));end = end + yside + axle * (step * 1/4 * hdirsign);
+                insert(new StraightWire(back(), end - xside + axle * (step * 1/4 * hdirsign), current, piecesperside));end = end - xside + axle * (step * 1/4 * hdirsign);
+                insert(new StraightWire(back(), end - yside + axle * (step * 1/4 * hdirsign), current, piecesperside));end = end - yside + axle * (step * 1/4 * hdirsign);
+            }
+            hdirsign *= -1;
+            if(inward){
+                end = end + Vect_3ddir(xside) * thick + Vect_3ddir(yside) * thick;
+                xside = xside - Vect_3ddir(xside) * thick * 2;
+                yside = yside - Vect_3ddir(yside) * thick * 2;
+            }
+            else{
+                end = end - Vect_3ddir(xside) * thick - Vect_3ddir(yside) * thick;
+                xside = xside + Vect_3ddir(xside) * thick * 2;
+                yside = yside + Vect_3ddir(yside) * thick * 2;
+            }
+            //修改end的位置，和边长
+        }
+        endpoint = back()->Endpoint();
+    }
+    virtual Vect_3d Endpoint() override
+    {
+        return endpoint;
     }
 };
 
@@ -213,7 +365,7 @@ class Pass: public AddComponents{
     Ampere current;
     Pass(Components* component, Vect_3d end):
     AddComponents(component),Beginr(component->Endpoint()),Endr(end){}
-    virtual Vect_3d Endpoint() override 
+    virtual Vect_3d Endpoint() override
     {
         return Endr;
     }
